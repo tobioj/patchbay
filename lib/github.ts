@@ -143,7 +143,14 @@ async function get<T>(pathAndQuery: string, accept = "application/vnd.github+jso
   return (accept.includes("json") ? res.json() : res.text()) as Promise<T>;
 }
 
-const seg = (p: string) => p.split("/").filter(Boolean).map(encodeURIComponent).join("/");
+// One URL path segment from the model, encoded. "." and ".." are refused: URL parsing resolves them,
+// so "../../other/repo" would step out of /repos/<owner>/<name> and past the allowlist. Everything
+// else is percent-encoded, so slashes, backslashes and "%2e" can't become separators or dots either.
+function part(s: string): string {
+  if (s === "." || s === "..") throw new GitHubError(`"${s}" isn't allowed in a GitHub path`);
+  return encodeURIComponent(s);
+}
+const seg = (p: string) => p.split("/").filter(Boolean).map(part).join("/");
 const cap = (s: string, n: number) => (s.length > n ? s.slice(0, n) + `\n… [cut off: ${s.length.toLocaleString()} characters total]` : s);
 
 // Refuse anything outside the allowlist before a request is even made.
@@ -214,8 +221,10 @@ export async function runGithubTool(name: string, rawArgs: string, allowed: stri
         return { result: `=== GITHUB FILE: ${repo}/${file.path}${ref ? ` @ ${ref}` : ""} ===\n${cap(text, MAX_FILE_CHARS)}\n=== END FILE ===`, summary: `Read ${repo}/${file.path}`, ok: true };
       }
       case "github_search_code": {
-        const query = str("query");
-        if (!query) throw new GitHubError("query is required");
+        // Scope qualifiers are removed: GitHub ORs several repo: qualifiers together, so one in the
+        // query would widen the search beyond the allowed repo.
+        const query = str("query")?.replace(/(^|\s)-?(repo|org|user|owner):\S*/gi, " ").replace(/\s+/g, " ").trim();
+        if (!query) throw new GitHubError("query is required (without repo:, org: or user: — the search is always limited to the repo)");
         const data = await get<{ total_count: number; items: { path: string; html_url: string }[] }>(
           `/search/code?q=${encodeURIComponent(`${query} repo:${repo}`)}&per_page=30`,
         );
@@ -266,7 +275,7 @@ export async function runGithubTool(name: string, rawArgs: string, allowed: stri
       case "github_commits": {
         const sha = str("sha");
         if (sha) {
-          const c = await get<{ sha: string; commit: { message: string; author: { name: string; date: string } }; files?: { filename: string; status: string; patch?: string }[] }>(`${base}/commits/${encodeURIComponent(sha)}`);
+          const c = await get<{ sha: string; commit: { message: string; author: { name: string; date: string } }; files?: { filename: string; status: string; patch?: string }[] }>(`${base}/commits/${part(sha)}`);
           const text =
             `${c.sha.slice(0, 12)} by ${c.commit.author.name}, ${c.commit.author.date.slice(0, 10)}\n\n${c.commit.message}\n\n` +
             (c.files ?? []).map((f) => `### ${f.filename} (${f.status})\n${f.patch ? "```diff\n" + cap(f.patch, MAX_PATCH_CHARS) + "\n```" : ""}`).join("\n\n");

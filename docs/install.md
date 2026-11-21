@@ -7,7 +7,7 @@ There are two ways to install Patchbay:
 
 Both work the same once they're running. This page covers both, plus adding your API keys, updating, moving and uninstalling.
 
-**Contents:** [Download the app](#download-the-app) · [From source: requirements](#requirements) · [Mac](#mac) · [Windows](#windows) · [Add an API key](#add-an-api-key) · [What the launcher does](#what-the-launcher-does) · [Updating](#updating) · [Coming from DeepSeek Chat](#coming-from-deepseek-chat) · [Moving to a new folder or computer](#moving-to-a-new-folder-or-computer) · [Running without the launcher](#running-without-the-launcher) · [Uninstalling](#uninstalling)
+**Contents:** [Download the app](#download-the-app) · [From source: requirements](#requirements) · [Mac](#mac) · [Windows](#windows) · [Add an API key](#add-an-api-key) · [What the launcher does](#what-the-launcher-does) · [Updating](#updating) · [Moving to a new folder or computer](#moving-to-a-new-folder-or-computer) · [Running without the launcher](#running-without-the-launcher) · [Uninstalling](#uninstalling)
 
 ## Download the app
 
@@ -173,17 +173,6 @@ patchbay
 4. `patchbay` rebuilds with the new code (a minute or two) and opens the app.
 
 Your chats, projects, skills, settings and keys are untouched by updates.
-
-## Coming from DeepSeek Chat
-
-Patchbay used to be called **DeepSeek Chat** (command `deepseek-chat`, repository `tobioj/my_deek_sk_ui`). Everything you had carries over; only the names changed. GitHub forwards the old repository address to the new one, so `git pull` keeps working in an existing clone.
-
-1. In the app folder, stop the old app: `deepseek-chat stop`.
-2. Get the new code: `git pull`, then `npm ci`.
-3. Run the setup again: `zsh scripts/mac/install.sh` on a Mac, or `powershell -ExecutionPolicy Bypass -File scripts\windows\install.ps1` on Windows. It adds `patchbay` and the **Patchbay** app or shortcuts, and removes the old **DeepSeek Chat** ones. On a Mac, an old standalone `deepseek-chat` script is kept as `~/.local/bin/deepseek-chat.backup` rather than deleted.
-4. Open a new terminal and run `patchbay`.
-
-If you'd set a Docs folder, it stays where it was (new installs default to `~/Documents/Patchbay Docs`). The separate `deepseek` command some setups have (Claude Code running on DeepSeek) isn't part of Patchbay and isn't touched.
 
 ## Moving to a new folder or computer
 

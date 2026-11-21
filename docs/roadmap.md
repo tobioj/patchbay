@@ -36,7 +36,7 @@ Patchbay grows in steps, and each step is usable on its own. This page lists wha
 - [x] macOS (Keychain, native dialogs, sandbox, `.app` launcher)
 - [x] Windows (DPAPI, native dialogs, PowerShell, shortcuts)
 - [x] Downloadable apps for macOS (Apple silicon, Intel) and Windows (x64, Arm), with Node.js included
-- [x] Open source under Apache 2.0, renamed from DeepSeek Chat to Patchbay
+- [x] Open source under Apache 2.0
 
 ## 🧭 Being considered
 

@@ -19,7 +19,6 @@ Patchbay has no automated test suite yet, so these manual end-to-end checks are 
 - [ ] The command is found in a new terminal, and the app opens in its own window after the first build.
 - [ ] `patchbay status` says it's running; `patchbay stop` stops it; `patchbay` starts it again; `patchbay restart` rebuilds after a code change; `patchbay logs` follows the log.
 - [ ] Mac: **Patchbay** opens from Spotlight. Windows: the Desktop and Start menu shortcuts work.
-- [ ] Coming from DeepSeek Chat: running the setup on an old install removes the old app/shortcuts and command.
 
 ## T2. Keys and providers
 

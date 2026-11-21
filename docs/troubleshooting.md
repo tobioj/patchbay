@@ -10,7 +10,6 @@ Find your problem below. If it isn't here, check the logs ([Seeing more detail](
 |---|---|
 | `command not found: patchbay` (Mac) | Run `zsh scripts/mac/install.sh` in the app folder, then open a **new** Terminal window. |
 | `'patchbay' is not recognized` (Windows) | Run the setup (`powershell -ExecutionPolicy Bypass -File scripts\windows\install.ps1`), then close **every** terminal window (Windows Terminal completely; new tabs keep the old settings) and open a new one. Or run `scripts\windows\patchbay.cmd` from the app folder. |
-| `deepseek-chat` stopped working after an update | The command is now `patchbay`. Run the setup again; see [Install → Coming from DeepSeek Chat](install.md#coming-from-deepseek-chat). |
 | "Node.js isn't installed (npm wasn't found)" | Install the LTS version from [nodejs.org](https://nodejs.org), open a new terminal, and try again. On a Mac with Node from nvm or similar, the launcher also tries your login shell's `PATH`. |
 | You pressed Ctrl + C during *Building the app…* | Run `patchbay` again. It sees the build didn't finish and starts it over. |
 | "Build failed — see …/data/build.log" | Open `data/build.log`. After an update, run `npm ci` first (the packages may have changed), then `patchbay`. |
@@ -26,7 +25,6 @@ Find your problem below. If it isn't here, check the logs ([Seeing more detail](
 | Windows warns about the scripts in the downloaded app, or SmartScreen blocks **Install Patchbay.cmd** | Right-click the zip → **Properties** → **Unblock** before unzipping, then unzip again. For SmartScreen, **More info → Run anyway**. |
 | "Patchbay didn't start" (downloaded app) | Open the log: `~/Library/Application Support/Patchbay/server.log` (Mac) or `%LOCALAPPDATA%\Patchbay\server.log` (Windows). Another program may be using port 3456, for example a from-source Patchbay: stop it first. |
 | I installed the app and also have a from-source copy | Both use port 3456, so whichever starts first answers. Stop one (`patchbay stop`) before opening the other. They keep separate data folders. |
-| Old **DeepSeek Chat** app or shortcut still around | Run the setup again; it removes them. You can also delete them by hand. |
 
 ## Keys and providers
 

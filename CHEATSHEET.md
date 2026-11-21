@@ -31,7 +31,6 @@ The app lives at **http://127.0.0.1:3456** and is only reachable from your Mac.
 
 **Setting it up on another Mac:** in the app folder, run `npm ci`, then `zsh scripts/mac/install.sh`. That adds the `patchbay` command and the **Patchbay** app.
 
-**Coming from DeepSeek Chat** (the app's old name): in the app folder, run `deepseek-chat stop`, `git pull`, `npm ci`, then `zsh scripts/mac/install.sh` (Windows: `install.ps1`, below) and open a new terminal. From then on the command is `patchbay`; your chats, settings and keys are untouched. The setup removes the old **DeepSeek Chat** app and command.
 
 ## 2b. On Windows
 

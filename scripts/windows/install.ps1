@@ -34,12 +34,5 @@ if ($parts -notcontains $Here) {
   Write-Host "patchbay is already on your PATH."
 }
 
-# 3. Patchbay used to be called DeepSeek Chat: take away the old shortcuts if they're here.
-#    (The old deepseek-chat files in this folder are gone already, so that command stops working.)
-foreach ($dir in $places) {
-  $old = Join-Path $dir "DeepSeek Chat.lnk"
-  if (Test-Path $old) { Remove-Item $old -Force; Write-Host "Removed the old shortcut: $old" }
-}
-
 Write-Host ""
 Write-Host "Done. Open Patchbay from the Desktop or Start menu, or run: patchbay" -ForegroundColor Green

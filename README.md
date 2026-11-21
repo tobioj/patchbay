@@ -132,7 +132,6 @@ Then open **Settings → AI providers** and paste a key.
 
 Full walkthrough, updating and uninstalling: [Install](docs/install.md). Every command on one page: [Cheat sheet](CHEATSHEET.md).
 
-> **Coming from DeepSeek Chat?** Patchbay is its new name. Run `deepseek-chat stop`, `git pull`, `npm ci`, then the setup script again; your chats, settings and keys carry over. [Details](docs/install.md#coming-from-deepseek-chat).
 
 ## Everyday commands
 

@@ -85,7 +85,7 @@ npm start          # http://127.0.0.1:3456
 | File | What it is |
 |---|---|
 | `scripts/mac/patchbay` | The macOS launcher (zsh). Linked to `~/.local/bin/patchbay` by `install.sh`. Must keep LF line endings (`.gitattributes`). |
-| `scripts/mac/install.sh` | Adds the command and builds `~/Applications/Patchbay.app` with `osacompile`, sets its icon and bundle id, and removes the old DeepSeek Chat names |
+| `scripts/mac/install.sh` | Adds the command and builds `~/Applications/Patchbay.app` with `osacompile`, and sets its icon and bundle id |
 | `scripts/windows/patchbay.ps1` | The Windows launcher (PowerShell). Must keep CRLF line endings. |
 | `scripts/windows/patchbay.cmd` | Runs `patchbay.ps1` with `-ExecutionPolicy Bypass`, so it works without changing PowerShell settings |
 | `scripts/windows/install.ps1` | Adds the user `PATH` entry and the Desktop / Start menu shortcuts |

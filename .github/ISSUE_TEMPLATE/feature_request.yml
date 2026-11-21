@@ -1,0 +1,29 @@
+name: Feature request
+description: Suggest an idea or improvement for Patchbay.
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: Check the [roadmap](https://github.com/tobioj/patchbay/blob/main/docs/roadmap.md) first. Your idea may already be under consideration.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What problem would this solve?
+      description: Describe what you're trying to do and what gets in the way today.
+    validations:
+      required: true
+  - type: textarea
+    id: idea
+    attributes:
+      label: What would you like to happen?
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Is it about a specific provider?
+      options: ["No, all providers", "DeepSeek", "Claude", "GLM", "A new provider"]
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives or workarounds you've considered

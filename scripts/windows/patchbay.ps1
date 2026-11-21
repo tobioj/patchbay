@@ -1,0 +1,146 @@
+# patchbay (Windows): start Patchbay if it isn't running, and open it in its own window.
+#   patchbay           open the app
+#   patchbay start     start the background server without opening a window
+#   patchbay status    show whether the server is running, and any running commands
+#   patchbay stop      stop the background server (and every command it started)
+#   patchbay restart   restart it (rebuilds if the code changed)
+#   patchbay logs      follow the server log (Ctrl+C to stop)
+param([string]$Command = "open")
+
+$ErrorActionPreference = "Stop"
+# From source this script is in scripts\windows. In the downloaded app it sits next to a bundled
+# node.exe and a prebuilt server (app\server.js), and keeps your data in %LOCALAPPDATA%\Patchbay.
+$Packaged = Test-Path (Join-Path $PSScriptRoot "app\server.js")
+if ($Packaged) {
+  $AppDir = Join-Path $PSScriptRoot "app"
+  $Node = Join-Path $PSScriptRoot "node.exe"
+  if (-not $env:DATA_DIR) { $env:DATA_DIR = Join-Path $env:LOCALAPPDATA "Patchbay" }
+  $DataDir = $env:DATA_DIR
+} else {
+  $AppDir = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)   # scripts\windows -> the app folder
+  $DataDir = Join-Path $AppDir "data"
+}
+$Port = 3456
+$Url = "http://127.0.0.1:$Port"
+$Log = Join-Path $DataDir "server.log"
+$BuildLog = Join-Path $DataDir "build.log"
+New-Item -ItemType Directory -Force -Path $DataDir | Out-Null
+Set-Location $AppDir
+
+function Test-Up {
+  try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 1 "$Url/api/health" | Out-Null; return $true } catch { return $false }
+}
+
+function Get-ServerProcessId {
+  $conn = Get-NetTCPConnection -LocalPort $Port -State Listen -ErrorAction SilentlyContinue | Select-Object -First 1
+  if ($conn) { return $conn.OwningProcess } else { return $null }
+}
+
+function Stop-Server {
+  $serverId = Get-ServerProcessId
+  if (-not $serverId) { return $false }
+  # /T also ends the npm and cmd processes that started the server.
+  & taskkill.exe /PID $serverId /T /F | Out-Null
+  for ($i = 0; $i -lt 20 -and (Test-Up); $i++) { Start-Sleep -Milliseconds 250 }
+  return $true
+}
+
+# Commands started by the AI or Run that are still running.
+function Get-RunningCommands {
+  try { return (Invoke-WebRequest -UseBasicParsing -TimeoutSec 3 "$Url/api/processes?format=text").Content.Trim() } catch { return "" }
+}
+
+# Stop them through the app, so it can check they're really gone.
+function Stop-Commands {
+  $list = Get-RunningCommands
+  if (-not $list) { return }
+  Write-Host "Stopping running commands:"
+  $list -split "`n" | ForEach-Object { Write-Host "  $_" }
+  try { Invoke-WebRequest -UseBasicParsing -TimeoutSec 60 -Method Post -ContentType "application/json" -Body '{"action":"stop_all"}' "$Url/api/processes" | Out-Null } catch {}
+  $left = Get-RunningCommands
+  if ($left) {
+    Write-Host "Still running (stopping the app ends these too):"
+    $left -split "`n" | ForEach-Object { Write-Host "  $_" }
+  }
+}
+
+function Stop-WithError([string]$Message) {
+  Write-Host $Message -ForegroundColor Red
+  if ($Host.Name -eq "ConsoleHost") { Read-Host "Press Enter to close" | Out-Null }
+  exit 1
+}
+
+switch ($Command) {
+  "status" {
+    if (Test-Up) {
+      Write-Host "Running at $Url (pid $(Get-ServerProcessId))"
+      $list = Get-RunningCommands
+      if ($list) {
+        Write-Host "Running commands (stop them in the app's Running list, or with: patchbay stop):"
+        $list -split "`n" | ForEach-Object { Write-Host "  $_" }
+      } else { Write-Host "No commands running." }
+    } else { Write-Host "Not running. Start it with: patchbay" }
+    exit 0
+  }
+  "stop" {
+    if (Test-Up) { Stop-Commands }
+    if (Stop-Server) { Write-Host "Stopped." } else { Write-Host "Not running." }
+    exit 0
+  }
+  "restart" { if (Test-Up) { Stop-Commands }; Stop-Server | Out-Null; Start-Sleep -Seconds 1 }
+  "logs" {
+    if (-not (Test-Path $Log)) { Write-Host "No log yet." ; exit 0 }
+    Get-Content -Path $Log -Wait -Tail 50
+    exit 0
+  }
+}
+
+if (-not (Test-Up) -and $Packaged) {
+  # The downloaded app: the server is already built; run it with the bundled Node, with no window.
+  $env:HOSTNAME = "127.0.0.1"
+  $env:PORT = "$Port"
+  Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "`"`"$Node`" `"$AppDir\server.js`" > `"$Log`" 2>&1`"" -WorkingDirectory $AppDir -WindowStyle Hidden
+  for ($i = 0; $i -lt 120 -and -not (Test-Up); $i++) { Start-Sleep -Milliseconds 250 }
+  if (-not (Test-Up)) { Stop-WithError "Patchbay didn't start. See $Log" }
+}
+
+if (-not (Test-Up)) {
+  if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) {
+    Stop-WithError "Node.js isn't installed (npm wasn't found). Install it from https://nodejs.org, then try again."
+  }
+  if (-not (Test-Path (Join-Path $AppDir "node_modules"))) {
+    Write-Host "Installing the app's packages (first run)..."
+    # Through cmd.exe: npm writes warnings to stderr, and Windows PowerShell would treat those as errors.
+    $installLog = Join-Path $DataDir "install.log"
+    & cmd.exe /c "npm install > `"$installLog`" 2>&1"
+    if ($LASTEXITCODE -ne 0) { Stop-WithError "Installing packages failed. See $DataDir\install.log" }
+  }
+  # Build on first run, or when the code changed since the last build.
+  $buildId = Join-Path $AppDir ".next\BUILD_ID"
+  $needsBuild = -not (Test-Path $buildId)
+  if (-not $needsBuild) {
+    $built = (Get-Item $buildId).LastWriteTime
+    $sources = @("app", "components", "lib", "proxy.ts", "instrumentation.ts", "next.config.ts", "package.json") | ForEach-Object { Join-Path $AppDir $_ }
+    $newer = Get-ChildItem -Path $sources -Recurse -File -ErrorAction SilentlyContinue | Where-Object { $_.LastWriteTime -gt $built } | Select-Object -First 1
+    $needsBuild = [bool]$newer
+  }
+  if ($needsBuild) {
+    Write-Host "Building the app (first run or code changed). This takes a few minutes; don't close this window..."
+    # Through cmd.exe, like the install above: build warnings go to stderr and aren't failures.
+    & cmd.exe /c "npm run build > `"$BuildLog`" 2>&1"
+    if ($LASTEXITCODE -ne 0) { Stop-WithError "Build failed. See $BuildLog" }
+  }
+  # Start the server in the background, with no window, logging to data\server.log.
+  Start-Process -FilePath "cmd.exe" -ArgumentList "/c", "npm start > `"$Log`" 2>&1" -WorkingDirectory $AppDir -WindowStyle Hidden
+  for ($i = 0; $i -lt 120 -and -not (Test-Up); $i++) { Start-Sleep -Milliseconds 250 }
+  if (-not (Test-Up)) { Stop-WithError "The server didn't start. See $Log" }
+}
+
+if ($Command -eq "start") { Write-Host "Running at $Url"; exit 0 }
+
+# Open as a standalone window (no tabs or address bar): Chrome if installed, otherwise Edge.
+$opened = $false
+foreach ($browser in @("chrome", "msedge")) {
+  try { Start-Process $browser -ArgumentList "--app=$Url" -ErrorAction Stop; $opened = $true; break } catch {}
+}
+if (-not $opened) { Start-Process $Url }

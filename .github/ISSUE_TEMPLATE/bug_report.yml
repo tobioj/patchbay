@@ -1,0 +1,78 @@
+name: Bug report
+description: Something doesn't work the way the docs say it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. **Security problems:** please don't file them here. See [SECURITY.md](https://github.com/tobioj/patchbay/blob/main/docs/SECURITY.md).
+        Check [Troubleshooting](https://github.com/tobioj/patchbay/blob/main/docs/troubleshooting.md) first. Many problems are covered there.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, what did you expect, and what happened instead?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open a chat with Claude Sonnet 5.5 and link a folder
+        2. Switch to Edit mode and ask for a change
+        3. ...
+  - type: dropdown
+    id: area
+    attributes:
+      label: Which part of Patchbay?
+      options:
+        - Install / launcher (patchbay command)
+        - Chatting / models / costs
+        - Folders / Ask, Plan, Edit, Auto / undo
+        - Terminal / Running list
+        - Projects
+        - Web search
+        - GitHub
+        - Docs folder
+        - Skills
+        - Helpers
+        - Settings / keys
+        - Something else
+    validations:
+      required: true
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Provider
+      multiple: true
+      options: [DeepSeek, Claude, GLM, Not provider-specific]
+    validations:
+      required: true
+  - type: input
+    id: model
+    attributes:
+      label: Model
+      placeholder: e.g. V4.1 Flash, Claude Sonnet 5.5, GLM-5.3
+  - type: input
+    id: version
+    attributes:
+      label: Patchbay version
+      description: The commit you're on (`git rev-parse --short HEAD` in the app folder)
+    validations:
+      required: true
+  - type: textarea
+    id: system
+    attributes:
+      label: System
+      description: Operating system and version, Node.js version (`node --version`), and the browser the app opens in
+      placeholder: |
+        macOS 26.1 (Apple silicon), Node 22.12, Chrome 142
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs
+      description: The relevant part of `data/server.log` (or `patchbay logs`), and any error shown in the app. Logs can contain file paths and command output from your projects, so look them over first.
+      render: text

@@ -1,0 +1,7 @@
+# Windows scripts keep Windows line endings, Mac scripts keep Mac line endings; the icons are binary.
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+*.sh text eol=lf
+scripts/mac/patchbay text eol=lf
+*.ico binary
+*.icns binary
